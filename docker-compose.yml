@@ -1,0 +1,65 @@
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "8080:8080"
+    environment:
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin}
+      - JWT_SECRET=${JWT_SECRET:-your-secret-key-change-in-production}
+      - KRATOS_ADMIN_URL=http://kratos:4434
+      - KRATOS_PUBLIC_URL=http://kratos:4433
+      - PORT=8080
+    depends_on:
+      kratos:
+        condition: service_started
+    networks:
+      - kratos-network
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "3000:8080"
+    depends_on:
+      - backend
+    networks:
+      - kratos-network
+    restart: unless-stopped
+
+  kratos-migrate:
+    image: oryd/kratos:v1.0.0
+    volumes:
+      - ./kratos:/etc/config/kratos
+      - kratos-sqlite:/var/lib/sqlite
+    command: migrate sql -e --yes
+    environment:
+      - DSN=sqlite:///var/lib/sqlite/db.sqlite?_fk=true&mode=rwc
+    networks:
+      - kratos-network
+    restart: on-failure
+
+  kratos:
+    image: oryd/kratos:v1.0.0
+    ports:
+      - "4433:4433"
+      - "4434:4434"
+    volumes:
+      - ./kratos:/etc/config/kratos
+      - kratos-sqlite:/var/lib/sqlite
+    command: serve -c /etc/config/kratos/kratos.yml --dev --watch-courier
+    environment:
+      - DSN=sqlite:///var/lib/sqlite/db.sqlite?_fk=true&mode=rwc
+    depends_on:
+      kratos-migrate:
+        condition: service_completed_successfully
+    networks:
+      - kratos-network
+    restart: unless-stopped
+
+networks:
+  kratos-network:
+    driver: bridge
+
+volumes:
+  kratos-sqlite:

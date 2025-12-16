@@ -1,0 +1,17 @@
+apiVersion: v2
+name: kratos-admin-ui
+description: A Helm chart for deploying Kratos Admin UI (backend and frontend)
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+keywords:
+  - kratos
+  - admin
+  - identity
+  - ory
+maintainers:
+  - name: Nitrikx
+home: https://github.com/Nitrikx/kratos-admin-ui
+sources:
+  - https://github.com/Nitrikx/kratos-admin-ui
+

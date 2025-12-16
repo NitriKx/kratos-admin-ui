@@ -1,0 +1,149 @@
+# Default values for kratos-admin-ui
+
+backend:
+  image:
+    repository: ghcr.io/nitrikx/kratos-admin-backend
+    pullPolicy: IfNotPresent
+    # Overrides the image tag whose default is the chart appVersion
+    tag: ""
+
+  replicaCount: 1
+
+  service:
+    type: ClusterIP
+    port: 8080
+
+  auth:
+    # Admin password configuration
+    # Option 1: Reference an existing Kubernetes secret
+    existingSecret: ""
+    existingSecretKey: "password"
+    # Option 2: Leave existingSecret empty to auto-generate a random password
+
+    # JWT Secret configuration
+    jwtSecret:
+      # Option 1: Reference an existing Kubernetes secret
+      existingSecret: ""
+      existingSecretKey: "jwt-secret"
+      # Option 2: Provide value directly (ignored if existingSecret is set)
+      value: "change-me-in-production"
+
+  config:
+    kratosAdminUrl: "http://kratos:4434"
+    kratosPublicUrl: "http://kratos:4433"
+    # CORS allowed origins (comma-separated list)
+    # Example: "https://kratos-admin.example.com,https://admin.local"
+    # Leave empty to allow all origins (wildcard "*")
+    corsOrigins: ""
+
+  resources: {}
+    # limits:
+    #   cpu: 100m
+    #   memory: 128Mi
+    # requests:
+    #   cpu: 100m
+    #   memory: 128Mi
+
+  # Pod security context for backend
+  podSecurityContext:
+    runAsUser: 1000
+    runAsGroup: 1000
+    fsGroup: 1000
+
+  # Container security context for backend
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    runAsGroup: 1000
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+    capabilities:
+      drop:
+        - ALL
+
+  nodeSelector: {}
+
+  tolerations: []
+
+  affinity: {}
+
+frontend:
+  image:
+    repository: ghcr.io/nitrikx/kratos-admin-frontend
+    pullPolicy: IfNotPresent
+    # Overrides the image tag whose default is the chart appVersion
+    tag: ""
+
+  replicaCount: 1
+
+  service:
+    type: ClusterIP
+    port: 80
+
+  resources: {}
+    # limits:
+    #   cpu: 100m
+    #   memory: 128Mi
+    # requests:
+    #   cpu: 100m
+    #   memory: 128Mi
+
+  # Pod security context for frontend
+  podSecurityContext:
+    runAsUser: 1000
+    runAsGroup: 1000
+    fsGroup: 1000
+
+  # Container security context for frontend
+  # Note: nginx needs write access to /var/cache/nginx, /var/run, /tmp
+  # readOnlyRootFilesystem is false to allow nginx temp files
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    runAsGroup: 1000
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: false
+    capabilities:
+      drop:
+        - ALL
+
+  nodeSelector: {}
+
+  tolerations: []
+
+  affinity: {}
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  hosts:
+    - host: kratos-admin.local
+      paths:
+        - path: /api
+          pathType: Prefix
+          backend: backend
+        - path: /
+          pathType: Prefix
+          backend: frontend
+  tls: []
+  #  - secretName: kratos-admin-tls
+  #    hosts:
+  #      - kratos-admin.local
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: false
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use
+  name: ""
+
+podAnnotations: {}
+

@@ -1,0 +1,164 @@
+{
+  "$id": "https://schemas.ory.sh/presets/kratos/test/identity.schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Test Identity",
+  "type": "object",
+  "properties": {
+    "traits": {
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string",
+          "format": "email",
+          "title": "E-Mail",
+          "minLength": 3,
+          "ory.sh/kratos": {
+            "credentials": {
+              "password": {
+                "identifier": true
+              }
+            },
+            "verification": {
+              "via": "email"
+            },
+            "recovery": {
+              "via": "email"
+            }
+          }
+        },
+        "username": {
+          "type": "string",
+          "title": "Username",
+          "minLength": 3,
+          "maxLength": 30,
+          "pattern": "^[a-zA-Z0-9_]+$"
+        },
+        "name": {
+          "type": "object",
+          "title": "Full Name",
+          "properties": {
+            "first": {
+              "title": "First Name",
+              "type": "string"
+            },
+            "last": {
+              "title": "Last Name",
+              "type": "string"
+            }
+          }
+        },
+        "phone": {
+          "type": "string",
+          "title": "Phone Number",
+          "format": "tel"
+        },
+        "website": {
+          "type": "string",
+          "title": "Website URL",
+          "format": "uri"
+        },
+        "birthdate": {
+          "type": "string",
+          "title": "Date of Birth",
+          "format": "date"
+        },
+        "age": {
+          "type": "integer",
+          "title": "Age",
+          "minimum": 0,
+          "maximum": 150
+        },
+        "salary": {
+          "type": "number",
+          "title": "Salary",
+          "minimum": 0
+        },
+        "newsletter": {
+          "type": "boolean",
+          "title": "Subscribe to Newsletter",
+          "default": false
+        },
+        "terms_accepted": {
+          "type": "boolean",
+          "title": "Terms and Conditions Accepted"
+        },
+        "gender": {
+          "type": "string",
+          "title": "Gender",
+          "enum": ["male", "female", "other", "prefer_not_to_say"]
+        },
+        "country": {
+          "type": "string",
+          "title": "Country",
+          "enum": ["us", "uk", "fr", "de", "es", "it", "other"]
+        },
+        "role": {
+          "type": "string",
+          "title": "Role",
+          "enum": ["admin", "user", "moderator", "guest"],
+          "default": "user"
+        },
+        "bio": {
+          "type": "string",
+          "title": "Biography",
+          "maxLength": 500
+        },
+        "tags": {
+          "type": "array",
+          "title": "Tags",
+          "items": {
+            "type": "string"
+          }
+        },
+        "address": {
+          "type": "object",
+          "title": "Address",
+          "properties": {
+            "street": {
+              "type": "string",
+              "title": "Street"
+            },
+            "city": {
+              "type": "string",
+              "title": "City"
+            },
+            "zip": {
+              "type": "string",
+              "title": "ZIP Code",
+              "pattern": "^[0-9]{5}(-[0-9]{4})?$"
+            },
+            "country": {
+              "type": "string",
+              "title": "Country"
+            }
+          }
+        },
+        "preferences": {
+          "type": "object",
+          "title": "Preferences",
+          "properties": {
+            "theme": {
+              "type": "string",
+              "title": "Theme",
+              "enum": ["light", "dark", "auto"],
+              "default": "auto"
+            },
+            "language": {
+              "type": "string",
+              "title": "Language",
+              "enum": ["en", "fr", "de", "es"],
+              "default": "en"
+            },
+            "notifications_enabled": {
+              "type": "boolean",
+              "title": "Enable Notifications",
+              "default": true
+            }
+          }
+        }
+      },
+      "required": ["email"],
+      "additionalProperties": false
+    }
+  }
+}

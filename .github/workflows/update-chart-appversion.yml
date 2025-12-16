@@ -1,0 +1,52 @@
+name: Update Chart appVersion
+
+on:
+  workflow_run:
+    workflows: ["Build and Publish Docker Images"]
+    types:
+      - completed
+
+permissions:
+  contents: write
+
+jobs:
+  update-appversion:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get app version from tag
+        id: version
+        run: |
+          # Get the tag that triggered the docker-publish workflow
+          TAG=$(git describe --tags --abbrev=0 --match "v*" 2>/dev/null || echo "")
+          if [ -z "$TAG" ]; then
+            echo "No v* tag found"
+            exit 1
+          fi
+          # Extract version (v1.2.3 -> 1.2.3)
+          VERSION=${TAG#v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Found app version: $VERSION"
+
+      - name: Update Chart.yaml appVersion
+        run: |
+          sed -i "s/^appVersion:.*/appVersion: \"${{ steps.version.outputs.version }}\"/" charts/kratos-admin-ui/Chart.yaml
+          cat charts/kratos-admin-ui/Chart.yaml
+
+      - name: Commit and push changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add charts/kratos-admin-ui/Chart.yaml
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "chore(chart): update appVersion to ${{ steps.version.outputs.version }}"
+            git push origin main
+          fi

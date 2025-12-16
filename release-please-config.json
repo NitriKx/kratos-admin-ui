@@ -1,0 +1,15 @@
+{
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "packages": {
+    ".": {
+      "release-type": "simple",
+      "component": "app",
+      "extra-files": ["version.txt"]
+    },
+    "charts/kratos-admin-ui": {
+      "release-type": "helm",
+      "component": "chart"
+    }
+  },
+  "separate-pull-requests": true
+}

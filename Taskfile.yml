@@ -1,0 +1,139 @@
+version: '3'
+
+tasks:
+  default:
+    desc: Build both backend and frontend
+    cmds:
+      - task: build
+
+  build:
+    desc: Build both backend and frontend
+    cmds:
+      - task: build:backend
+      - task: build:frontend
+
+  build:backend:
+    desc: Build only the backend
+    dir: backend
+    cmds:
+      - echo "Building backend..."
+      - go build -o bin/server ./cmd/server
+
+  build:frontend:
+    desc: Build only the frontend
+    dir: frontend
+    cmds:
+      - echo "Building frontend..."
+      - npm run build
+
+  dev:
+    desc: Run both backend and frontend in development mode
+    deps:
+      - dev:backend
+      - dev:frontend
+
+  dev:backend:
+    desc: Run backend in development mode
+    dir: backend
+    cmds:
+      - echo "Starting backend in dev mode..."
+      - go run ./cmd/server
+
+  dev:frontend:
+    desc: Run frontend in development mode
+    dir: frontend
+    cmds:
+      - echo "Starting frontend in dev mode..."
+      - npm run dev
+
+  install:
+    desc: Install all dependencies
+    cmds:
+      - task: install:backend
+      - task: install:frontend
+
+  install:backend:
+    desc: Install backend dependencies
+    dir: backend
+    cmds:
+      - echo "Installing backend dependencies..."
+      - go mod download
+
+  install:frontend:
+    desc: Install frontend dependencies
+    dir: frontend
+    cmds:
+      - echo "Installing frontend dependencies..."
+      - npm install
+
+  clean:
+    desc: Clean build artifacts
+    cmds:
+      - echo "Cleaning build artifacts..."
+      - rm -rf backend/bin
+      - rm -rf frontend/dist
+      - rm -rf frontend/node_modules/.tmp
+
+  docker:build:
+    desc: Build Docker images
+    cmds:
+      - echo "Building Docker images..."
+      - docker compose build
+
+  docker:up:
+    desc: Start Docker containers
+    cmds:
+      - echo "Starting Docker containers..."
+      - docker compose up -d
+
+  docker:down:
+    desc: Stop Docker containers
+    cmds:
+      - echo "Stopping Docker containers..."
+      - docker compose down
+
+  docker:logs:
+    desc: View Docker container logs
+    cmds:
+      - docker compose logs -f
+
+  lint:
+    desc: Run all linters
+    cmds:
+      - task: lint:backend
+      - task: lint:frontend
+
+  lint:backend:
+    desc: Lint backend code
+    dir: backend
+    cmds:
+      - echo "Linting backend..."
+      - go vet ./...
+
+  lint:frontend:
+    desc: Lint frontend code
+    dir: frontend
+    cmds:
+      - echo "Linting frontend..."
+      - npm run lint
+
+  test:
+    desc: Run all tests
+    cmds:
+      - task: test:backend
+      - task: test:frontend
+
+  test:backend:
+    desc: Run backend tests
+    dir: backend
+    cmds:
+      - echo "Testing backend..."
+      - go test ./...
+
+  test:frontend:
+    desc: Run frontend tests
+    dir: frontend
+    cmds:
+      - echo "Testing frontend..."
+      - npm run test
+

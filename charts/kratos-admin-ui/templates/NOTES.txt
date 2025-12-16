@@ -1,0 +1,53 @@
+Thank you for installing {{ .Chart.Name }}!
+
+Your release is named: {{ .Release.Name }}
+
+== Getting Started ==
+
+1. Get the frontend URL:
+{{- if .Values.ingress.enabled }}
+{{- range $host := .Values.ingress.hosts }}
+  http{{ if $.Values.ingress.tls }}s{{ end }}://{{ $host.host }}
+{{- end }}
+{{- else if contains "NodePort" .Values.frontend.service.type }}
+  export NODE_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "kratos-admin-ui.fullname" . }}-frontend)
+  export NODE_IP=$(kubectl get nodes --namespace {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
+  echo http://$NODE_IP:$NODE_PORT
+{{- else if contains "LoadBalancer" .Values.frontend.service.type }}
+  NOTE: It may take a few minutes for the LoadBalancer IP to be available.
+  Watch the status with: kubectl get --namespace {{ .Release.Namespace }} svc -w {{ include "kratos-admin-ui.fullname" . }}-frontend
+  export SERVICE_IP=$(kubectl get svc --namespace {{ .Release.Namespace }} {{ include "kratos-admin-ui.fullname" . }}-frontend --template "{{"{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}"}}")
+  echo http://$SERVICE_IP:{{ .Values.frontend.service.port }}
+{{- else if contains "ClusterIP" .Values.frontend.service.type }}
+  kubectl --namespace {{ .Release.Namespace }} port-forward svc/{{ include "kratos-admin-ui.fullname" . }}-frontend 8080:{{ .Values.frontend.service.port }}
+  Then open: http://localhost:8080
+{{- end }}
+
+2. Get the admin password:
+{{- if .Values.backend.auth.existingSecret }}
+  Your admin password is stored in the existing secret: {{ .Values.backend.auth.existingSecret }}
+  kubectl get secret --namespace {{ .Release.Namespace }} {{ .Values.backend.auth.existingSecret }} -o jsonpath="{.data.{{ .Values.backend.auth.existingSecretKey }}}" | base64 -d; echo
+{{- else }}
+  kubectl get secret --namespace {{ .Release.Namespace }} {{ include "kratos-admin-ui.fullname" . }}-admin -o jsonpath="{.data.password}" | base64 -d; echo
+{{- end }}
+
+3. Default admin username: admin
+
+== Configuration ==
+
+Backend API is available at:
+{{- if .Values.ingress.enabled }}
+{{- range $host := .Values.ingress.hosts }}
+  http{{ if $.Values.ingress.tls }}s{{ end }}://{{ $host.host }}/api
+{{- end }}
+{{- else }}
+  kubectl --namespace {{ .Release.Namespace }} port-forward svc/{{ include "kratos-admin-ui.fullname" . }}-backend 8080:{{ .Values.backend.service.port }}
+  Then: http://localhost:8080/api
+{{- end }}
+
+Kratos URLs configured:
+  - Admin URL: {{ .Values.backend.config.kratosAdminUrl }}
+  - Public URL: {{ .Values.backend.config.kratosPublicUrl }}
+
+For more information, visit: https://github.com/Nitrikx/kratos-admin-ui
+
