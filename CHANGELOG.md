@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.3](https://github.com/NitriKx/kratos-admin-ui/compare/v0.2.2...v0.2.3) (2025-12-17)
+
+
+### Bug Fixes
+
+* **ci:** use fix commit type for appVersion updates ([185a831](https://github.com/NitriKx/kratos-admin-ui/commit/185a8316d20e11e14f40a898b59c9cb869fc69c6))
+
 ## [0.2.2](https://github.com/NitriKx/kratos-admin-ui/compare/v0.2.1...v0.2.2) (2025-12-17)
 
 
