@@ -19,9 +19,9 @@ jobs:
       matrix:
         include:
           - context: ./backend
-            image: kratos-admin-backend
+            image: kratos-admin-ui-backend
           - context: ./frontend
-            image: kratos-admin-frontend
+            image: kratos-admin-ui-frontend
 
     steps:
       - name: Checkout repository
