@@ -1,4 +1,4 @@
-name: Update Chart appVersion
+name: Update Chart and Release
 
 on:
   workflow_run:
@@ -10,7 +10,7 @@ permissions:
   contents: write
 
 jobs:
-  update-appversion:
+  update-and-release-chart:
     runs-on: ubuntu-latest
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
@@ -34,19 +34,47 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Found app version: $VERSION"
 
-      - name: Update Chart.yaml appVersion
+      - name: Update Chart.yaml
+        id: chart
         run: |
-          sed -i "s/^appVersion:.*/appVersion: \"${{ steps.version.outputs.version }}\"/" charts/kratos-admin-ui/Chart.yaml
-          cat charts/kratos-admin-ui/Chart.yaml
+          VERSION="${{ steps.version.outputs.version }}"
+          CHART_FILE="charts/kratos-admin-ui/Chart.yaml"
+          
+          # Update appVersion
+          sed -i "s/^appVersion:.*/appVersion: \"$VERSION\"/" "$CHART_FILE"
+          
+          # Update chart version to match app version
+          sed -i "s/^version:.*/version: $VERSION/" "$CHART_FILE"
+          
+          echo "Updated Chart.yaml:"
+          cat "$CHART_FILE"
+          
+          echo "chart_version=$VERSION" >> $GITHUB_OUTPUT
 
-      - name: Commit and push changes
+      - name: Commit changes
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add charts/kratos-admin-ui/Chart.yaml
           if git diff --staged --quiet; then
             echo "No changes to commit"
+            echo "skip_release=true" >> $GITHUB_ENV
           else
-            git commit -m "fix(chart): update appVersion to ${{ steps.version.outputs.version }}"
+            git commit -m "chore(chart): update chart to version ${{ steps.chart.outputs.chart_version }}"
             git push origin main
+            echo "skip_release=false" >> $GITHUB_ENV
+          fi
+
+      - name: Create and push chart tag
+        if: env.skip_release != 'true'
+        run: |
+          TAG="chart-v${{ steps.chart.outputs.chart_version }}"
+          
+          # Check if tag already exists
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "Tag $TAG already exists, skipping"
+          else
+            echo "Creating tag $TAG"
+            git tag "$TAG"
+            git push origin "$TAG"
           fi
