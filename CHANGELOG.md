@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.5](https://github.com/NitriKx/kratos-admin-ui/compare/v0.2.4...v0.2.5) (2025-12-17)
+
+
+### Bug Fixes
+
+* **ci:** add token to checkout for gh-pages branch creation ([58d84f3](https://github.com/NitriKx/kratos-admin-ui/commit/58d84f3e149fcc538e9327e7bb372b8f394fe850))
+
 ## [0.2.4](https://github.com/NitriKx/kratos-admin-ui/compare/v0.2.3...v0.2.4) (2025-12-17)
 
 
