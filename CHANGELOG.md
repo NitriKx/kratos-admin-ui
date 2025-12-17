@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.2](https://github.com/NitriKx/kratos-admin-ui/compare/v0.2.1...v0.2.2) (2025-12-17)
+
+
+### Bug Fixes
+
+* **chart-release:** trigger a build when pushing the commit with the version update ([28edc54](https://github.com/NitriKx/kratos-admin-ui/commit/28edc54bf74f20c49c728166e769a914b23f389c))
+
 ## [0.2.1](https://github.com/NitriKx/kratos-admin-ui/compare/v0.2.0...v0.2.1) (2025-12-17)
 
 
