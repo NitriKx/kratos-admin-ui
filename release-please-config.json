@@ -4,11 +4,13 @@
     ".": {
       "release-type": "simple",
       "component": "app",
+      "include-component-in-tag": false,
       "extra-files": ["version.txt"]
     },
     "charts/kratos-admin-ui": {
       "release-type": "helm",
-      "component": "chart"
+      "component": "chart",
+      "include-component-in-tag": true
     }
   },
   "separate-pull-requests": true
