@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.4](https://github.com/NitriKx/kratos-admin-ui/compare/v0.2.3...v0.2.4) (2025-12-17)
+
+
+### Bug Fixes
+
+* **chart:** update appVersion to 0.2.3 ([94647b8](https://github.com/NitriKx/kratos-admin-ui/commit/94647b818c7c34efebc4e1e634ca071b05f3bc50))
+
 ## [0.2.3](https://github.com/NitriKx/kratos-admin-ui/compare/v0.2.2...v0.2.3) (2025-12-17)
 
 
