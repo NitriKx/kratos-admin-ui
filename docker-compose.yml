@@ -30,7 +30,7 @@ services:
   kratos-migrate:
     image: oryd/kratos:v1.0.0
     volumes:
-      - ./kratos:/etc/config/kratos
+      - ./test/kratos:/etc/config/kratos
       - kratos-sqlite:/var/lib/sqlite
     command: migrate sql -e --yes
     environment:
@@ -45,7 +45,7 @@ services:
       - "4433:4433"
       - "4434:4434"
     volumes:
-      - ./kratos:/etc/config/kratos
+      - ./test/kratos:/etc/config/kratos
       - kratos-sqlite:/var/lib/sqlite
     command: serve -c /etc/config/kratos/kratos.yml --dev --watch-courier
     environment:

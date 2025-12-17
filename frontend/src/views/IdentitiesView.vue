@@ -2,7 +2,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { AxiosError } from 'axios'
-import { Plus, Search, Pencil, Eye, Trash2 } from 'lucide-vue-next'
+import { Plus, Search, Pencil, Eye, Trash2, UserCheck, UserX } from 'lucide-vue-next'
 import { useIdentitiesStore } from '@/stores/identities'
 import { useToast } from '@/composables/useToast'
 import DataTable from '@/components/DataTable.vue'
@@ -85,12 +85,15 @@ const isDeleteDialogOpen = ref(false)
 const identityToDelete = ref<string | null>(null)
 const isDeleting = ref(false)
 
+// Toggle state tracking
+const togglingIdentityId = ref<string | null>(null)
+
 const columns = [
   { key: 'id', label: 'ID / UUID', width: '180px' },
   { key: 'traits', label: 'Traits' },
   { key: 'state', label: 'State', width: '120px' },
   { key: 'created_at', label: 'Created At', width: '150px' },
-  { key: 'actions', label: 'Actions', width: '120px' }
+  { key: 'actions', label: 'Actions', width: '150px' }
 ]
 
 const truncateId = (id: string) => {
@@ -186,6 +189,25 @@ const confirmDelete = async () => {
     toast.error('Failed to delete identity', getErrorMessage(e))
   } finally {
     isDeleting.value = false
+  }
+}
+
+const toggleIdentityState = async (identity: Identity) => {
+  togglingIdentityId.value = identity.id
+  const newState = identity.state === 'active' ? 'inactive' : 'active'
+  try {
+    await identitiesStore.updateIdentity(identity.id, {
+      schema_id: identity.schema_id,
+      traits: identity.traits as Record<string, unknown>,
+      state: newState
+    })
+    const action = newState === 'active' ? 'enabled' : 'disabled'
+    toast.success(`Identity ${action}`, `The identity has been ${action} successfully.`)
+  } catch (e) {
+    console.error('Failed to toggle identity state', e)
+    toast.error('Failed to update identity', getErrorMessage(e))
+  } finally {
+    togglingIdentityId.value = null
   }
 }
 
@@ -289,6 +311,17 @@ onMounted(async () => {
             title="View details"
           >
             <Eye class="w-4 h-4" />
+          </button>
+          <button
+            @click="toggleIdentityState(row)"
+            class="p-1.5 transition-colors"
+            :class="row.state === 'active' ? 'text-text-muted hover:text-warning' : 'text-text-muted hover:text-success'"
+            :title="row.state === 'active' ? 'Disable user' : 'Enable user'"
+            :disabled="togglingIdentityId === row.id"
+          >
+            <div v-if="togglingIdentityId === row.id" class="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+            <UserX v-else-if="row.state === 'active'" class="w-4 h-4" />
+            <UserCheck v-else class="w-4 h-4" />
           </button>
           <button
             @click="openDeleteDialog(row.id)"
