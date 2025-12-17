@@ -2,8 +2,8 @@ apiVersion: v2
 name: kratos-admin-ui
 description: A Helm chart for deploying Kratos Admin UI (backend and frontend)
 type: application
-version: 0.1.0
-appVersion: "0.2.3"
+version: 0.2.4
+appVersion: "0.2.4"
 keywords:
   - kratos
   - admin
