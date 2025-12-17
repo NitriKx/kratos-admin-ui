@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/NitriKx/kratos-admin-ui/compare/v0.2.0...v0.2.1) (2025-12-17)
+
+
+### Bug Fixes
+
+* trigger new release ([6df1152](https://github.com/NitriKx/kratos-admin-ui/commit/6df115238fb1dd15fd90c64b612a1a2579a3b608))
+
 ## [0.2.0](https://github.com/NitriKx/kratos-admin-ui/compare/v0.1.0...v0.2.0) (2025-12-17)
 
 
