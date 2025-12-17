@@ -13,9 +13,9 @@ jobs:
   release-please:
     runs-on: ubuntu-latest
     outputs:
-      app-release-created: ${{ steps.release.outputs['.' + '--release_created'] }}
-      app-tag-name: ${{ steps.release.outputs['.' + '--tag_name'] }}
-      app-version: ${{ steps.release.outputs['.' + '--version'] }}
+      app-release-created: ${{ steps.release.outputs['.--release_created'] }}
+      app-tag-name: ${{ steps.release.outputs['.--tag_name'] }}
+      app-version: ${{ steps.release.outputs['.--version'] }}
       chart-release-created: ${{ steps.release.outputs['charts/kratos-admin-ui--release_created'] }}
       chart-tag-name: ${{ steps.release.outputs['charts/kratos-admin-ui--tag_name'] }}
       chart-version: ${{ steps.release.outputs['charts/kratos-admin-ui--version'] }}
