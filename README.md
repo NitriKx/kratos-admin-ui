@@ -2,6 +2,8 @@
 
 A modern administration console for [Ory Kratos](https://www.ory.sh/kratos/) identity management system.
 
+![Kratos Admin UI Screenshot](docs/screenshot.png)
+
 ## Features
 
 - **Identity Management**: List, create, edit, and delete user identities
