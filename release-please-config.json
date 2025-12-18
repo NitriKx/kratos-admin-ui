@@ -4,7 +4,19 @@
     ".": {
       "release-type": "simple",
       "include-component-in-tag": false,
-      "extra-files": ["version.txt"]
+      "extra-files": [
+        "version.txt",
+        {
+          "type": "yaml",
+          "path": "charts/kratos-admin-ui/Chart.yaml",
+          "jsonpath": "$.appVersion"
+        },
+        {
+          "type": "yaml",
+          "path": "charts/kratos-admin-ui/Chart.yaml",
+          "jsonpath": "$.version"
+        }
+      ]
     }
   }
 }
