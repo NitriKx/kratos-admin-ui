@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.7](https://github.com/NitriKx/kratos-admin-ui/compare/v0.2.6...v0.2.7) (2025-12-18)
+
+
+### Bug Fixes
+
+* **chart:** correct image repository names in values and README ([02e9851](https://github.com/NitriKx/kratos-admin-ui/commit/02e9851449ec86a8663a03b207259b8ff2517d77))
+
 ## [0.2.6](https://github.com/NitriKx/kratos-admin-ui/compare/v0.2.5...v0.2.6) (2025-12-18)
 
 
