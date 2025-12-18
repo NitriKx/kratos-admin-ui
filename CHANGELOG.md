@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.6](https://github.com/NitriKx/kratos-admin-ui/compare/v0.2.5...v0.2.6) (2025-12-18)
+
+
+### Bug Fixes
+
+* **ui:** remove unused search bar from header ([73420d2](https://github.com/NitriKx/kratos-admin-ui/commit/73420d2299df7d5428af301258d7b498b56c427e))
+
 ## [0.2.5](https://github.com/NitriKx/kratos-admin-ui/compare/v0.2.4...v0.2.5) (2025-12-17)
 
 
