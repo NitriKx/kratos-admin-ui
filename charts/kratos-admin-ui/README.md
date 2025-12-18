@@ -51,7 +51,7 @@ helm install my-release kratos-admin-ui/kratos-admin-ui -f my-values.yaml
 
 | Parameter | Description | Default |
 |-----------|-------------|---------|
-| `backend.image.repository` | Backend image repository | `ghcr.io/nitrikx/kratos-admin-backend` |
+| `backend.image.repository` | Backend image repository | `ghcr.io/nitrikx/kratos-admin-ui-backend` |
 | `backend.image.pullPolicy` | Image pull policy | `IfNotPresent` |
 | `backend.image.tag` | Image tag (defaults to chart appVersion) | `""` |
 | `backend.replicaCount` | Number of backend replicas | `1` |
@@ -86,7 +86,7 @@ helm install my-release kratos-admin-ui/kratos-admin-ui -f my-values.yaml
 
 | Parameter | Description | Default |
 |-----------|-------------|---------|
-| `frontend.image.repository` | Frontend image repository | `ghcr.io/nitrikx/kratos-admin-frontend` |
+| `frontend.image.repository` | Frontend image repository | `ghcr.io/nitrikx/kratos-admin-ui-frontend` |
 | `frontend.image.pullPolicy` | Image pull policy | `IfNotPresent` |
 | `frontend.image.tag` | Image tag (defaults to chart appVersion) | `""` |
 | `frontend.replicaCount` | Number of frontend replicas | `1` |

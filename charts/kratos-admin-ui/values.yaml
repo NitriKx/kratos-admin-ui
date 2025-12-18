@@ -2,7 +2,7 @@
 
 backend:
   image:
-    repository: ghcr.io/nitrikx/kratos-admin-backend
+    repository: ghcr.io/nitrikx/kratos-admin-ui-backend
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion
     tag: ""
@@ -69,7 +69,7 @@ backend:
 
 frontend:
   image:
-    repository: ghcr.io/nitrikx/kratos-admin-frontend
+    repository: ghcr.io/nitrikx/kratos-admin-ui-frontend
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion
     tag: ""
