@@ -24,13 +24,22 @@ COPY --from=builder /app/dist /usr/share/nginx/html
 # Copy nginx configuration
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Use non-root user (nginx-unprivileged runs as UID 101 by default, but we'll use 1000)
+# Copy entrypoint script
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+
+# Switch to root temporarily to make script executable and set permissions
+USER root
+RUN chmod +x /docker-entrypoint.sh && \
+    chown 1000:1000 /usr/share/nginx/html/config.js
+
+# Use non-root user
 USER 1000:1000
 
 # Expose non-privileged port
 EXPOSE 8080
 
-# Start nginx
+# Use entrypoint to generate config at startup
+ENTRYPOINT ["/docker-entrypoint.sh"]
 CMD ["nginx", "-g", "daemon off;"]
 
 

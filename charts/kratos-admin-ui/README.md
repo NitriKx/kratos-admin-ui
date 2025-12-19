@@ -92,10 +92,13 @@ helm install my-release kratos-admin-ui/kratos-admin-ui -f my-values.yaml
 | `frontend.replicaCount` | Number of frontend replicas | `1` |
 | `frontend.service.type` | Frontend service type | `ClusterIP` |
 | `frontend.service.port` | Frontend service port | `80` |
+| `frontend.config.apiUrl` | Backend API URL (empty = relative URLs, recommended for ingress) | `""` |
 | `frontend.resources` | Frontend resource requests/limits | `{}` |
 | `frontend.nodeSelector` | Node selector for frontend pods | `{}` |
 | `frontend.tolerations` | Tolerations for frontend pods | `[]` |
 | `frontend.affinity` | Affinity rules for frontend pods | `{}` |
+
+> **Note**: When using ingress, leave `frontend.config.apiUrl` empty (default) to use relative URLs. The frontend will make API requests to the same origin, and the ingress will route `/api/*` paths to the backend. This is the recommended setup for Kubernetes deployments.
 
 ### Ingress Parameters
 

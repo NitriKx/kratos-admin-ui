@@ -80,6 +80,12 @@ frontend:
     type: ClusterIP
     port: 80
 
+  config:
+    # API URL for the frontend to connect to the backend
+    # Leave empty to use relative URLs (recommended when using ingress)
+    # Example: "https://kratos-admin.example.com" for cross-origin setup
+    apiUrl: ""
+
   resources: {}
     # limits:
     #   cpu: 100m

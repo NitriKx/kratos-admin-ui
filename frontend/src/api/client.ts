@@ -1,7 +1,17 @@
 import axios, { type AxiosInstance, type AxiosError } from 'axios'
 import type { Identity, Session, IdentitySchema, Stats, PaginatedResponse, LoginResponse } from '@/types'
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080'
+// Runtime config from window.__RUNTIME_CONFIG__ (injected by config.js)
+// Falls back to VITE_API_URL for development, then to empty string (relative URLs)
+declare global {
+  interface Window {
+    __RUNTIME_CONFIG__?: {
+      apiUrl?: string
+    }
+  }
+}
+
+const API_URL = window.__RUNTIME_CONFIG__?.apiUrl ?? import.meta.env.VITE_API_URL ?? ''
 
 class ApiClient {
   private client: AxiosInstance
