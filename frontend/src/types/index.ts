@@ -1,3 +1,11 @@
+// Identity credential types
+export interface IdentityCredential {
+  type: string
+  identifiers?: string[]
+  created_at?: string
+  updated_at?: string
+}
+
 // Identity types
 export interface Identity {
   id: string
@@ -10,6 +18,7 @@ export interface Identity {
   recovery_addresses?: RecoveryAddress[]
   metadata_public?: Record<string, unknown>
   metadata_admin?: Record<string, unknown>
+  credentials?: Record<string, IdentityCredential>
   created_at: string
   updated_at: string
 }

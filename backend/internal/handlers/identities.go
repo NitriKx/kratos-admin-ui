@@ -145,3 +145,64 @@ func (h *IdentitiesHandler) GetSessions(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"data": sessions})
 }
+
+// ResetPasswordRequest represents the request body for resetting a password
+type ResetPasswordRequest struct {
+	Password string `json:"password" binding:"required,min=8"`
+}
+
+// ResetPassword resets the password for an identity
+func (h *IdentitiesHandler) ResetPassword(c *gin.Context) {
+	id := c.Param("id")
+
+	var req ResetPasswordRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body", "details": err.Error()})
+		return
+	}
+
+	if err := h.client.ResetPassword(c.Request.Context(), id, req.Password); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to reset password", "details": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Password reset successfully"})
+}
+
+// DeleteCredential deletes a specific credential type for an identity
+func (h *IdentitiesHandler) DeleteCredential(c *gin.Context) {
+	id := c.Param("id")
+	credType := c.Param("type")
+
+	// Validate credential type
+	validTypes := map[string]bool{
+		"totp":          true,
+		"webauthn":      true,
+		"lookup_secret": true,
+	}
+
+	if !validTypes[credType] {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid credential type", "details": "Supported types: totp, webauthn, lookup_secret"})
+		return
+	}
+
+	if err := h.client.DeleteCredential(c.Request.Context(), id, credType); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete credential", "details": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Credential deleted successfully"})
+}
+
+// GetWithCredentials returns a single identity by ID including credentials metadata
+func (h *IdentitiesHandler) GetWithCredentials(c *gin.Context) {
+	id := c.Param("id")
+
+	identity, err := h.client.GetIdentityWithCredentials(c.Request.Context(), id)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Identity not found", "details": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, identity)
+}

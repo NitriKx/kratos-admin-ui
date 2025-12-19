@@ -107,6 +107,46 @@ export const useIdentitiesStore = defineStore('identities', () => {
     }
   }
 
+  async function fetchIdentityWithCredentials(id: string) {
+    loading.value = true
+    error.value = null
+    try {
+      currentIdentity.value = await api.getIdentityWithCredentials(id)
+    } catch (e) {
+      error.value = e instanceof Error ? e.message : 'Failed to fetch identity'
+    } finally {
+      loading.value = false
+    }
+  }
+
+  async function resetPassword(id: string, password: string) {
+    loading.value = true
+    error.value = null
+    try {
+      await api.resetPassword(id, password)
+    } catch (e) {
+      error.value = e instanceof Error ? e.message : 'Failed to reset password'
+      throw e
+    } finally {
+      loading.value = false
+    }
+  }
+
+  async function deleteCredential(id: string, credentialType: string) {
+    loading.value = true
+    error.value = null
+    try {
+      await api.deleteCredential(id, credentialType)
+      // Refresh the identity to get updated credentials
+      await fetchIdentityWithCredentials(id)
+    } catch (e) {
+      error.value = e instanceof Error ? e.message : 'Failed to delete credential'
+      throw e
+    } finally {
+      loading.value = false
+    }
+  }
+
   return {
     identities,
     currentIdentity,
@@ -119,9 +159,12 @@ export const useIdentitiesStore = defineStore('identities', () => {
     fetchIdentities,
     fetchIdentity,
     fetchIdentitySessions,
+    fetchIdentityWithCredentials,
     createIdentity,
     updateIdentity,
-    deleteIdentity
+    deleteIdentity,
+    resetPassword,
+    deleteCredential
   }
 })
 

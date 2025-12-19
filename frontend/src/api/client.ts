@@ -84,6 +84,19 @@ class ApiClient {
     return response.data
   }
 
+  async getIdentityWithCredentials(id: string): Promise<Identity> {
+    const response = await this.client.get<Identity>(`/api/identities/${id}/credentials`)
+    return response.data
+  }
+
+  async resetPassword(id: string, password: string): Promise<void> {
+    await this.client.post(`/api/identities/${id}/reset-password`, { password })
+  }
+
+  async deleteCredential(id: string, credentialType: string): Promise<void> {
+    await this.client.delete(`/api/identities/${id}/credentials/${credentialType}`)
+  }
+
   // Sessions
   async getSessions(page = 1, perPage = 20): Promise<PaginatedResponse<Session>> {
     const response = await this.client.get<PaginatedResponse<Session>>('/api/sessions', {

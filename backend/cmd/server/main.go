@@ -64,10 +64,13 @@ func main() {
 		// Identities
 		protected.GET("/identities", identitiesHandler.List)
 		protected.GET("/identities/:id", identitiesHandler.Get)
+		protected.GET("/identities/:id/credentials", identitiesHandler.GetWithCredentials)
 		protected.POST("/identities", identitiesHandler.Create)
 		protected.PUT("/identities/:id", identitiesHandler.Update)
 		protected.DELETE("/identities/:id", identitiesHandler.Delete)
 		protected.GET("/identities/:id/sessions", identitiesHandler.GetSessions)
+		protected.POST("/identities/:id/reset-password", identitiesHandler.ResetPassword)
+		protected.DELETE("/identities/:id/credentials/:type", identitiesHandler.DeleteCredential)
 
 		// Sessions
 		protected.GET("/sessions", sessionsHandler.List)

@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { AxiosError } from 'axios'
 import { Plus, Search, Pencil, Eye, Trash2, UserCheck, UserX } from 'lucide-vue-next'
 import { useIdentitiesStore } from '@/stores/identities'
 import { useToast } from '@/composables/useToast'
+import { getErrorMessage } from '@/utils/errorMessage'
 import DataTable from '@/components/DataTable.vue'
 import StatusBadge from '@/components/StatusBadge.vue'
 import UserAvatar from '@/components/UserAvatar.vue'
@@ -15,22 +15,6 @@ import type { Identity } from '@/types'
 const router = useRouter()
 const identitiesStore = useIdentitiesStore()
 const toast = useToast()
-
-// Helper to extract error message from API errors
-function getErrorMessage(error: unknown): string {
-  if (error instanceof AxiosError) {
-    // Try to get the error message from the API response
-    const data = error.response?.data
-    if (data?.details) return data.details
-    if (data?.error) return data.error
-    if (data?.message) return data.message
-    if (error.message) return error.message
-  }
-  if (error instanceof Error) {
-    return error.message
-  }
-  return 'An unexpected error occurred'
-}
 
 const searchQuery = ref('')
 const statusFilter = ref('all')

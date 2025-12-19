@@ -203,3 +203,58 @@ func (c *Client) GetSessionCount(ctx context.Context) (int64, error) {
 
 	return int64(len(sessions)), nil
 }
+
+// ResetPassword sets a new password for an identity
+func (c *Client) ResetPassword(ctx context.Context, id string, newPassword string) error {
+	// First, get the current identity to preserve its data
+	identity, _, err := c.api.IdentityApi.GetIdentity(ctx, id).Execute()
+	if err != nil {
+		return fmt.Errorf("failed to get identity: %w", err)
+	}
+
+	// Convert traits to map[string]interface{}
+	traits, ok := identity.Traits.(map[string]interface{})
+	if !ok {
+		return fmt.Errorf("failed to convert traits to map")
+	}
+
+	// Build update body with new password credentials
+	body := ory.UpdateIdentityBody{
+		SchemaId: identity.SchemaId,
+		Traits:   traits,
+		State:    *identity.State,
+		Credentials: &ory.IdentityWithCredentials{
+			Password: &ory.IdentityWithCredentialsPassword{
+				Config: &ory.IdentityWithCredentialsPasswordConfig{
+					Password: &newPassword,
+				},
+			},
+		},
+	}
+
+	_, _, err = c.api.IdentityApi.UpdateIdentity(ctx, id).UpdateIdentityBody(body).Execute()
+	if err != nil {
+		return fmt.Errorf("failed to update identity with new password: %w", err)
+	}
+
+	return nil
+}
+
+// DeleteCredential deletes a specific credential type for an identity
+func (c *Client) DeleteCredential(ctx context.Context, id string, credentialType string) error {
+	_, err := c.api.IdentityApi.DeleteIdentityCredentials(ctx, id, credentialType).Execute()
+	if err != nil {
+		return fmt.Errorf("failed to delete %s credentials: %w", credentialType, err)
+	}
+	return nil
+}
+
+// GetIdentityWithCredentials retrieves a single identity by ID including credentials metadata
+func (c *Client) GetIdentityWithCredentials(ctx context.Context, id string) (*ory.Identity, error) {
+	identity, _, err := c.api.IdentityApi.GetIdentity(ctx, id).IncludeCredential([]string{"totp", "password", "oidc", "webauthn", "lookup_secret"}).Execute()
+	if err != nil {
+		return nil, err
+	}
+
+	return identity, nil
+}
