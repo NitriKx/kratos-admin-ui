@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/NitriKx/kratos-admin-ui/compare/v0.2.7...v0.3.0) (2025-12-19)
+
+
+### Features
+
+* **frontend:** add runtime configuration for API URL ([66af915](https://github.com/NitriKx/kratos-admin-ui/commit/66af9156c991c49ba22c9b5b0aa7667394391a12))
+
 ## [0.2.7](https://github.com/NitriKx/kratos-admin-ui/compare/v0.2.6...v0.2.7) (2025-12-18)
 
 
