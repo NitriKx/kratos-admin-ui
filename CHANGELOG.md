@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.4.0](https://github.com/NitriKx/kratos-admin-ui/compare/v0.3.0...v0.4.0) (2025-12-22)
+
+
+### Features
+
+* **admin-ui:** add password reset and MFA disable functionality ([956258f](https://github.com/NitriKx/kratos-admin-ui/commit/956258ffb016d5ad129763c4531cce026ea00492))
+* **users:** allow to change a user password and remove MFA ([99dfe6c](https://github.com/NitriKx/kratos-admin-ui/commit/99dfe6c1073afff524480edbd262ff7edccfe5d4))
+
 ## [0.3.0](https://github.com/NitriKx/kratos-admin-ui/compare/v0.2.7...v0.3.0) (2025-12-19)
 
 
