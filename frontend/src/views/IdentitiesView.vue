@@ -40,7 +40,9 @@ const filteredIdentities = computed(() => {
       if (traits) {
         // Check email
         if (typeof traits.email === 'string' && traits.email.toLowerCase().includes(query)) return true
-        // Check username
+        // Check preferred_username
+        if (typeof traits.preferred_username === 'string' && traits.preferred_username.toLowerCase().includes(query)) return true
+        // Check username (legacy)
         if (typeof traits.username === 'string' && traits.username.toLowerCase().includes(query)) return true
         // Check name
         if (traits.name && typeof traits.name === 'object') {
@@ -95,7 +97,7 @@ const formatDate = (dateStr: string) => {
 
 const getEmail = (identity: Identity) => {
   const traits = identity.traits as Record<string, unknown>
-  return traits?.email as string || traits?.username as string || 'Unknown'
+  return traits?.email as string || traits?.preferred_username as string || traits?.username as string || 'Unknown'
 }
 
 const getName = (identity: Identity): string | undefined => {

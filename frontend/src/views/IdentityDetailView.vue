@@ -45,7 +45,7 @@ const hasMfa = computed(() => hasTotp.value || hasWebauthn.value || hasLookupSec
 const getEmail = () => {
   if (!identity.value) return 'Unknown'
   const traits = identity.value.traits as Record<string, unknown>
-  return traits?.email as string || traits?.username as string || 'Unknown'
+  return traits?.email as string || traits?.preferred_username as string || traits?.username as string || 'Unknown'
 }
 
 const getName = (): string | undefined => {
