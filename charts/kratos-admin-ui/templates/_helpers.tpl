@@ -113,8 +113,8 @@ Frontend image
 Admin secret name
 */}}
 {{- define "kratos-admin-ui.adminSecretName" -}}
-{{- if .Values.backend.auth.existingSecret }}
-{{- .Values.backend.auth.existingSecret }}
+{{- if .Values.backend.auth.password.existingSecret }}
+{{- .Values.backend.auth.password.existingSecret }}
 {{- else }}
 {{- include "kratos-admin-ui.fullname" . }}-admin
 {{- end }}
@@ -124,6 +124,6 @@ Admin secret name
 Admin secret key
 */}}
 {{- define "kratos-admin-ui.adminSecretKey" -}}
-{{- .Values.backend.auth.existingSecretKey | default "password" }}
+{{- .Values.backend.auth.password.existingSecretKey | default "password" }}
 {{- end }}
 

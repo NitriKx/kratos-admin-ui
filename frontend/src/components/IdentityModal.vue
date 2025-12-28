@@ -25,6 +25,10 @@ const selectedSchemaId = ref('')
 const traits = ref<Record<string, unknown>>({})
 const state = ref<'active' | 'inactive'>('active')
 
+// Validation
+const validationErrors = ref<Record<string, string>>({})
+const hasAttemptedSubmit = ref(false)
+
 // Computed
 const isEditing = computed(() => !!props.identity)
 const modalTitle = computed(() => isEditing.value ? 'Edit Identity' : 'Create Identity')
@@ -57,6 +61,9 @@ const schemaProperties = computed(() => {
       maximum: prop.maximum as number | undefined,
       minLength: prop.minLength as number | undefined,
       maxLength: prop.maxLength as number | undefined,
+      minItems: prop.minItems as number | undefined,
+      maxItems: prop.maxItems as number | undefined,
+      uniqueItems: prop.uniqueItems as boolean | undefined,
       pattern: prop.pattern as string | undefined,
       items: prop.items as Record<string, unknown> | undefined,
       properties: prop.properties as Record<string, unknown> | undefined,
@@ -93,16 +100,29 @@ const loadSchemas = async () => {
 
 // Initialize form when modal opens or identity changes
 const initForm = () => {
+  // Reset validation state
+  validationErrors.value = {}
+  hasAttemptedSubmit.value = false
+
   if (props.identity) {
     selectedSchemaId.value = props.identity.schema_id
     traits.value = JSON.parse(JSON.stringify(props.identity.traits || {}))
     state.value = props.identity.state
   } else {
+    // Initialize with default values from schema
     traits.value = {}
     state.value = 'active'
     const firstSchema = schemas.value[0]
     if (firstSchema && !selectedSchemaId.value) {
       selectedSchemaId.value = firstSchema.id
+    }
+    // Set default values for all properties with defaults
+    for (const prop of schemaProperties.value) {
+      if (prop.default !== undefined) {
+        traits.value[prop.key] = Array.isArray(prop.default)
+          ? [...prop.default]  // Clone array defaults
+          : prop.default
+      }
     }
   }
 }
@@ -131,6 +151,109 @@ const setNestedValue = (parentKey: string, childKey: string, value: unknown) => 
   (traits.value[parentKey] as Record<string, unknown>)[childKey] = value
 }
 
+// Validation functions
+const validateField = (prop: typeof schemaProperties.value[0]): string | null => {
+  const value = getTraitValue(prop.key)
+
+  // Check required
+  if (prop.required) {
+    if (value === undefined || value === null || value === '') {
+      return `${prop.title} is required`
+    }
+    if (prop.type === 'array' && Array.isArray(value) && value.length === 0) {
+      return `${prop.title} is required`
+    }
+  }
+
+  // Skip further validation if value is empty and not required
+  if (value === undefined || value === null || value === '') {
+    return null
+  }
+
+  // String validations
+  if (prop.type === 'string' && typeof value === 'string') {
+    // minLength
+    if (prop.minLength && value.length < prop.minLength) {
+      return `${prop.title} must be at least ${prop.minLength} characters`
+    }
+    // maxLength
+    if (prop.maxLength && value.length > prop.maxLength) {
+      return `${prop.title} must be at most ${prop.maxLength} characters`
+    }
+    // pattern
+    if (prop.pattern && !new RegExp(prop.pattern).test(value)) {
+      return `${prop.title} format is invalid`
+    }
+    // email format
+    if (prop.format === 'email') {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      if (!emailRegex.test(value)) {
+        return `${prop.title} must be a valid email address`
+      }
+    }
+    // uri format
+    if (prop.format === 'uri') {
+      try {
+        new URL(value)
+      } catch {
+        return `${prop.title} must be a valid URL`
+      }
+    }
+  }
+
+  // Number validations
+  if ((prop.type === 'integer' || prop.type === 'number') && typeof value === 'number') {
+    if (prop.minimum !== undefined && value < prop.minimum) {
+      return `${prop.title} must be at least ${prop.minimum}`
+    }
+    if (prop.maximum !== undefined && value > prop.maximum) {
+      return `${prop.title} must be at most ${prop.maximum}`
+    }
+  }
+
+  // Array validations
+  if (prop.type === 'array' && Array.isArray(value)) {
+    if (prop.minItems !== undefined && value.length < prop.minItems) {
+      return `${prop.title} must have at least ${prop.minItems} item${prop.minItems > 1 ? 's' : ''}`
+    }
+    if (prop.maxItems !== undefined && value.length > prop.maxItems) {
+      return `${prop.title} must have at most ${prop.maxItems} items`
+    }
+  }
+
+  return null
+}
+
+const validateAllFields = (): boolean => {
+  const errors: Record<string, string> = {}
+
+  for (const prop of schemaProperties.value) {
+    const error = validateField(prop)
+    if (error) {
+      errors[prop.key] = error
+    }
+  }
+
+  validationErrors.value = errors
+  return Object.keys(errors).length === 0
+}
+
+const clearError = (key: string) => {
+  delete validationErrors.value[key]
+}
+
+const validateSingleField = (key: string) => {
+  const prop = schemaProperties.value.find(p => p.key === key)
+  if (prop) {
+    const error = validateField(prop)
+    if (error) {
+      validationErrors.value[key] = error
+    } else {
+      clearError(key)
+    }
+  }
+}
+
 // Array handling
 const getArrayValue = (key: string): string[] => {
   const value = traits.value[key]
@@ -156,9 +279,22 @@ const updateArrayItem = (key: string, index: number, value: string) => {
 
 // Handle form submission
 const handleSubmit = () => {
+  hasAttemptedSubmit.value = true
+
+  // Validate all fields
+  if (!validateAllFields()) {
+    // Scroll to first error
+    const firstErrorKey = Object.keys(validationErrors.value)[0]
+    const firstErrorElement = document.querySelector(`[data-field="${firstErrorKey}"]`)
+    if (firstErrorElement) {
+      firstErrorElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
+    return
+  }
+
   // Clean up empty values
   const cleanedTraits = cleanTraits(traits.value)
-  
+
   emit('save', {
     schema_id: selectedSchemaId.value,
     traits: cleanedTraits,
@@ -205,7 +341,9 @@ watch(selectedSchemaId, (newId, oldId) => {
     traits.value = {}
     for (const prop of schemaProperties.value) {
       if (prop.default !== undefined) {
-        traits.value[prop.key] = prop.default
+        traits.value[prop.key] = Array.isArray(prop.default)
+          ? [...prop.default]  // Clone array defaults
+          : prop.default
       }
     }
   }
@@ -338,6 +476,7 @@ onMounted(() => {
                 <div
                   v-for="prop in schemaProperties"
                   :key="prop.key"
+                  :data-field="prop.key"
                   class="space-y-2"
                 >
                   <!-- String fields -->
@@ -346,71 +485,102 @@ onMounted(() => {
                       {{ prop.title }}
                       <span v-if="prop.required" class="text-danger">*</span>
                     </label>
-                    
+
                     <!-- Date input -->
                     <input
                       v-if="prop.format === 'date'"
                       type="date"
                       :value="getTraitValue(prop.key) as string || ''"
                       @input="setTraitValue(prop.key, ($event.target as HTMLInputElement).value)"
-                      class="w-full px-3 py-2 bg-background border border-border rounded-lg text-text-primary focus:outline-none focus:border-primary transition-colors"
+                      @blur="validateSingleField(prop.key)"
+                      :class="[
+                        'w-full px-3 py-2 bg-background border rounded-lg text-text-primary focus:outline-none transition-colors',
+                        validationErrors[prop.key] ? 'border-danger focus:border-danger' : 'border-border focus:border-primary'
+                      ]"
                     />
-                    
+
                     <!-- Email input -->
                     <input
                       v-else-if="prop.format === 'email'"
                       type="email"
                       :value="getTraitValue(prop.key) as string || ''"
                       @input="setTraitValue(prop.key, ($event.target as HTMLInputElement).value)"
+                      @blur="validateSingleField(prop.key)"
                       :placeholder="`Enter ${prop.title.toLowerCase()}`"
-                      class="w-full px-3 py-2 bg-background border border-border rounded-lg text-text-primary focus:outline-none focus:border-primary transition-colors"
+                      :class="[
+                        'w-full px-3 py-2 bg-background border rounded-lg text-text-primary focus:outline-none transition-colors',
+                        validationErrors[prop.key] ? 'border-danger focus:border-danger' : 'border-border focus:border-primary'
+                      ]"
                     />
-                    
+
                     <!-- URL input -->
                     <input
                       v-else-if="prop.format === 'uri'"
                       type="url"
                       :value="getTraitValue(prop.key) as string || ''"
                       @input="setTraitValue(prop.key, ($event.target as HTMLInputElement).value)"
+                      @blur="validateSingleField(prop.key)"
                       :placeholder="`Enter ${prop.title.toLowerCase()}`"
-                      class="w-full px-3 py-2 bg-background border border-border rounded-lg text-text-primary focus:outline-none focus:border-primary transition-colors"
+                      :class="[
+                        'w-full px-3 py-2 bg-background border rounded-lg text-text-primary focus:outline-none transition-colors',
+                        validationErrors[prop.key] ? 'border-danger focus:border-danger' : 'border-border focus:border-primary'
+                      ]"
                     />
-                    
+
                     <!-- Tel input -->
                     <input
                       v-else-if="prop.format === 'tel'"
                       type="tel"
                       :value="getTraitValue(prop.key) as string || ''"
                       @input="setTraitValue(prop.key, ($event.target as HTMLInputElement).value)"
+                      @blur="validateSingleField(prop.key)"
                       :placeholder="`Enter ${prop.title.toLowerCase()}`"
-                      class="w-full px-3 py-2 bg-background border border-border rounded-lg text-text-primary focus:outline-none focus:border-primary transition-colors"
+                      :class="[
+                        'w-full px-3 py-2 bg-background border rounded-lg text-text-primary focus:outline-none transition-colors',
+                        validationErrors[prop.key] ? 'border-danger focus:border-danger' : 'border-border focus:border-primary'
+                      ]"
                     />
-                    
+
                     <!-- Textarea for long text -->
                     <textarea
                       v-else-if="prop.maxLength && prop.maxLength > 100"
                       :value="getTraitValue(prop.key) as string || ''"
                       @input="setTraitValue(prop.key, ($event.target as HTMLTextAreaElement).value)"
+                      @blur="validateSingleField(prop.key)"
                       :placeholder="`Enter ${prop.title.toLowerCase()}`"
                       :maxlength="prop.maxLength"
                       rows="3"
-                      class="w-full px-3 py-2 bg-background border border-border rounded-lg text-text-primary focus:outline-none focus:border-primary transition-colors resize-none"
+                      :class="[
+                        'w-full px-3 py-2 bg-background border rounded-lg text-text-primary focus:outline-none transition-colors resize-none',
+                        validationErrors[prop.key] ? 'border-danger focus:border-danger' : 'border-border focus:border-primary'
+                      ]"
                     />
-                    
+
                     <!-- Default text input -->
                     <input
                       v-else
                       type="text"
                       :value="getTraitValue(prop.key) as string || ''"
                       @input="setTraitValue(prop.key, ($event.target as HTMLInputElement).value)"
+                      @blur="validateSingleField(prop.key)"
                       :placeholder="`Enter ${prop.title.toLowerCase()}`"
                       :pattern="prop.pattern"
                       :minlength="prop.minLength"
                       :maxlength="prop.maxLength"
-                      class="w-full px-3 py-2 bg-background border border-border rounded-lg text-text-primary focus:outline-none focus:border-primary transition-colors"
+                      :class="[
+                        'w-full px-3 py-2 bg-background border rounded-lg text-text-primary focus:outline-none transition-colors',
+                        validationErrors[prop.key] ? 'border-danger focus:border-danger' : 'border-border focus:border-primary'
+                      ]"
                     />
-                    
-                    <p v-if="prop.pattern" class="text-xs text-text-muted">
+
+                    <!-- Error message -->
+                    <p v-if="validationErrors[prop.key]" class="text-xs text-danger flex items-center gap-1">
+                      <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                      </svg>
+                      {{ validationErrors[prop.key] }}
+                    </p>
+                    <p v-else-if="prop.pattern" class="text-xs text-text-muted">
                       Pattern: {{ prop.pattern }}
                     </p>
                   </template>
@@ -424,8 +594,11 @@ onMounted(() => {
                     <div class="relative">
                       <select
                         :value="getTraitValue(prop.key) as string || ''"
-                        @change="setTraitValue(prop.key, ($event.target as HTMLSelectElement).value)"
-                        class="w-full px-3 py-2 bg-background border border-border rounded-lg text-text-primary focus:outline-none focus:border-primary transition-colors appearance-none pr-10"
+                        @change="setTraitValue(prop.key, ($event.target as HTMLSelectElement).value); validateSingleField(prop.key)"
+                        :class="[
+                          'w-full px-3 py-2 bg-background border rounded-lg text-text-primary focus:outline-none transition-colors appearance-none pr-10',
+                          validationErrors[prop.key] ? 'border-danger focus:border-danger' : 'border-border focus:border-primary'
+                        ]"
                       >
                         <option value="">Select {{ prop.title.toLowerCase() }}</option>
                         <option v-for="option in prop.enum" :key="option" :value="option">
@@ -434,6 +607,13 @@ onMounted(() => {
                       </select>
                       <ChevronDown class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted pointer-events-none" />
                     </div>
+                    <!-- Error message -->
+                    <p v-if="validationErrors[prop.key]" class="text-xs text-danger flex items-center gap-1">
+                      <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                      </svg>
+                      {{ validationErrors[prop.key] }}
+                    </p>
                   </template>
                   
                   <!-- Integer fields -->
@@ -446,13 +626,24 @@ onMounted(() => {
                       type="number"
                       :value="getTraitValue(prop.key) as number || ''"
                       @input="setTraitValue(prop.key, parseInt(($event.target as HTMLInputElement).value) || undefined)"
+                      @blur="validateSingleField(prop.key)"
                       :min="prop.minimum"
                       :max="prop.maximum"
                       :placeholder="`Enter ${prop.title.toLowerCase()}`"
-                      class="w-full px-3 py-2 bg-background border border-border rounded-lg text-text-primary focus:outline-none focus:border-primary transition-colors"
+                      :class="[
+                        'w-full px-3 py-2 bg-background border rounded-lg text-text-primary focus:outline-none transition-colors',
+                        validationErrors[prop.key] ? 'border-danger focus:border-danger' : 'border-border focus:border-primary'
+                      ]"
                     />
+                    <!-- Error message -->
+                    <p v-if="validationErrors[prop.key]" class="text-xs text-danger flex items-center gap-1">
+                      <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                      </svg>
+                      {{ validationErrors[prop.key] }}
+                    </p>
                   </template>
-                  
+
                   <!-- Number fields -->
                   <template v-else-if="prop.type === 'number'">
                     <label class="block text-sm font-medium text-text-primary">
@@ -464,11 +655,22 @@ onMounted(() => {
                       step="any"
                       :value="getTraitValue(prop.key) as number || ''"
                       @input="setTraitValue(prop.key, parseFloat(($event.target as HTMLInputElement).value) || undefined)"
+                      @blur="validateSingleField(prop.key)"
                       :min="prop.minimum"
                       :max="prop.maximum"
                       :placeholder="`Enter ${prop.title.toLowerCase()}`"
-                      class="w-full px-3 py-2 bg-background border border-border rounded-lg text-text-primary focus:outline-none focus:border-primary transition-colors"
+                      :class="[
+                        'w-full px-3 py-2 bg-background border rounded-lg text-text-primary focus:outline-none transition-colors',
+                        validationErrors[prop.key] ? 'border-danger focus:border-danger' : 'border-border focus:border-primary'
+                      ]"
                     />
+                    <!-- Error message -->
+                    <p v-if="validationErrors[prop.key]" class="text-xs text-danger flex items-center gap-1">
+                      <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                      </svg>
+                      {{ validationErrors[prop.key] }}
+                    </p>
                   </template>
                   
                   <!-- Boolean fields -->
@@ -493,10 +695,13 @@ onMounted(() => {
                       {{ prop.title }}
                       <span v-if="prop.required" class="text-danger">*</span>
                     </label>
-                    
+
                     <!-- Array with enum items -->
                     <div v-if="prop.items?.enum" class="space-y-2">
-                      <div class="flex flex-wrap gap-2">
+                      <div :class="[
+                        'flex flex-wrap gap-2 p-3 rounded-lg border',
+                        validationErrors[prop.key] ? 'border-danger bg-danger/5' : 'border-transparent'
+                      ]">
                         <label
                           v-for="option in (prop.items.enum as string[])"
                           :key="option"
@@ -512,12 +717,25 @@ onMounted(() => {
                               } else {
                                 setTraitValue(prop.key, arr.filter(v => v !== option))
                               }
+                              validateSingleField(prop.key)
                             }"
                             class="w-4 h-4 rounded border-border text-primary focus:ring-primary focus:ring-offset-0 bg-background"
                           />
                           <span class="text-sm text-text-primary">{{ option }}</span>
                         </label>
                       </div>
+                      <!-- Error or hint message -->
+                      <p v-if="validationErrors[prop.key]" class="text-xs text-danger flex items-center gap-1">
+                        <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                          <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                        </svg>
+                        {{ validationErrors[prop.key] }}
+                      </p>
+                      <p v-else-if="prop.minItems || prop.maxItems" class="text-xs text-text-muted">
+                        <span v-if="prop.minItems">Select at least {{ prop.minItems }} item{{ prop.minItems > 1 ? 's' : '' }}</span>
+                        <span v-if="prop.minItems && prop.maxItems"> • </span>
+                        <span v-if="prop.maxItems">Maximum {{ prop.maxItems }} items</span>
+                      </p>
                     </div>
                     
                     <!-- Array with string items -->
