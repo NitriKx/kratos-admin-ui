@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.4.0](https://github.com/NitriKx/kratos-admin-ui/compare/v0.3.0...v0.4.0) (2025-12-28)
+
+
+### Features
+
+* **admin-ui:** add password reset and MFA disable functionality ([956258f](https://github.com/NitriKx/kratos-admin-ui/commit/956258ffb016d5ad129763c4531cce026ea00492))
+* **ui:** add comprehensive client-side validation and helm chart password configuration ([2f5f3cd](https://github.com/NitriKx/kratos-admin-ui/commit/2f5f3cde50a7a8ce8f288fa6e7c774b8d40d6a12))
+* **users:** allow to change a user password and remove MFA ([99dfe6c](https://github.com/NitriKx/kratos-admin-ui/commit/99dfe6c1073afff524480edbd262ff7edccfe5d4))
+
+
+### Bug Fixes
+
+* support preferred_username field from OIDC-compliant schema ([0cf37d9](https://github.com/NitriKx/kratos-admin-ui/commit/0cf37d9e6d2438791338ef9410437b7a61b06265))
+
 ## [0.3.0](https://github.com/NitriKx/kratos-admin-ui/compare/v0.2.7...v0.3.0) (2025-12-19)
 
 
