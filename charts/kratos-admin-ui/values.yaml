@@ -15,10 +15,13 @@ backend:
 
   auth:
     # Admin password configuration
-    # Option 1: Reference an existing Kubernetes secret
-    existingSecret: ""
-    existingSecretKey: "password"
-    # Option 2: Leave existingSecret empty to auto-generate a random password
+    password:
+      # Option 1: Reference an existing Kubernetes secret
+      existingSecret: ""
+      existingSecretKey: "password"
+      # Option 2: Provide value directly (ignored if existingSecret is set)
+      value: ""
+      # Option 3: Leave both empty to auto-generate a random password
 
     # JWT Secret configuration
     jwtSecret:

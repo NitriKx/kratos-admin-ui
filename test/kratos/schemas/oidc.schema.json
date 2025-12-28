@@ -1,0 +1,117 @@
+{
+  "$id": "https://schemas.ory.sh/presets/kratos/quickstart/email-password/identity.schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Person",
+  "type": "object",
+  "properties": {
+    "traits": {
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string",
+          "format": "email",
+          "title": "E-Mail",
+          "minLength": 3,
+          "ory.sh/kratos": {
+            "credentials": {
+              "password": {
+                "identifier": true
+              }
+            },
+            "verification": {
+              "via": "email"
+            },
+            "recovery": {
+              "via": "email"
+            },
+            "mappings": {
+              "identity": {
+                "traits": [
+                  {
+                    "path": "email"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "email_verified": {
+          "type": "boolean",
+          "title": "Email Verified",
+          "default": false
+        },
+        "name": {
+          "type": "string",
+          "title": "Full Name",
+          "minLength": 1
+        },
+        "given_name": {
+          "type": "string",
+          "title": "First Name"
+        },
+        "family_name": {
+          "type": "string",
+          "title": "Last Name"
+        },
+        "preferred_username": {
+          "type": "string",
+          "title": "Username",
+          "minLength": 3,
+          "ory.sh/kratos": {
+            "credentials": {
+              "password": {
+                "identifier": true
+              }
+            }
+          }
+        },
+        "picture": {
+          "type": "string",
+          "format": "uri",
+          "title": "Profile Picture URL"
+        },
+        "website": {
+          "type": "string",
+          "format": "uri",
+          "title": "Website"
+        },
+        "locale": {
+          "type": "string",
+          "title": "Locale",
+          "default": "en-US"
+        },
+        "zoneinfo": {
+          "type": "string",
+          "title": "Timezone",
+          "default": "Europe/Paris"
+        },
+        "allowNotifications": {
+          "type": "boolean",
+          "title": "Allow Notifications",
+          "default": true
+        },
+        "groups": {
+          "type": "array",
+          "title": "Groups",
+          "items": {
+            "type": "string",
+            "enum": [
+              "admin",
+              "user",
+              "viewer"
+            ]
+          },
+          "default": [
+            "user"
+          ],
+          "uniqueItems": true,
+          "minItems": 1
+        }
+      },
+      "required": [
+        "email"
+      ],
+      "additionalProperties": false
+    }
+  }
+}
